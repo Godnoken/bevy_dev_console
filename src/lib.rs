@@ -1,10 +1,12 @@
 #![doc = include_str!("../README.md")]
 
+use bevy::ecs::system::Res;
+
 use bevy::prelude::*;
-use bevy_egui::EguiPlugin;
+use bevy_egui::{EguiContexts, EguiPlugin};
 use command::CommandHints;
 use config::ConsoleConfig;
-use ui::ConsoleUiState;
+use ui::ConsoleUiState; // Import the missing PickState type
 
 #[cfg(feature = "builtin-parser")]
 pub mod builtin_parser;
@@ -17,10 +19,7 @@ pub mod ui;
 /// Adds a Developer Console to your Bevy application.
 ///
 /// Requires [ConsoleLogPlugin](logging::log_plugin::ConsoleLogPlugin).
-pub struct DevConsolePlugin {
-    /// Modify the theme and 'open console' key here
-    pub console_config: ConsoleConfig,
-}
+pub struct DevConsolePlugin;
 impl Plugin for DevConsolePlugin {
     fn build(&self, app: &mut App) {
         if !app.is_plugin_added::<EguiPlugin>() {
@@ -35,7 +34,9 @@ impl Plugin for DevConsolePlugin {
 
         app.init_resource::<ConsoleUiState>()
             .init_resource::<CommandHints>()
-            .insert_resource(self.console_config.clone())
+            .init_resource::<ConsoleConfig>()
+            .init_resource::<ConsoleWantsMouseInput>()
+            .init_resource::<ConsoleWantsKeyboardInput>()
             .add_systems(
                 Update,
                 (
@@ -43,14 +44,38 @@ impl Plugin for DevConsolePlugin {
                     ui::open_close_ui,
                     ui::render_ui.run_if(|s: Res<ConsoleUiState>| s.open),
                 ),
+            )
+            .add_systems(
+                PreUpdate,
+                (check_console_inputs)
+                    .after(bevy_egui::systems::process_input_system)
+                    .before(bevy_egui::EguiSet::BeginFrame),
             );
     }
 }
 
-impl Default for DevConsolePlugin {
-    fn default() -> Self {
-        Self {
-            console_config: ConsoleConfig::default(),
-        }
+/// Lets you know if the mouse is hovering over / interacting with the console.
+#[derive(Resource, Default)]
+pub struct ConsoleWantsMouseInput(pub bool);
+
+/// Lets you know if the keyboard is interacting with the console.
+#[derive(Resource, Default)]
+pub struct ConsoleWantsKeyboardInput(pub bool);
+
+fn check_console_inputs(
+    mut console_wants_mouse_input: ResMut<ConsoleWantsMouseInput>,
+    mut console_wants_keyboard_input: ResMut<ConsoleWantsKeyboardInput>,
+    mut contexts: EguiContexts,
+) {
+    if contexts.ctx_mut().is_pointer_over_area() || contexts.ctx_mut().wants_pointer_input() {
+        console_wants_mouse_input.0 = true;
+    } else {
+        console_wants_mouse_input.0 = false;
+    }
+
+    if contexts.ctx_mut().wants_keyboard_input() {
+        console_wants_keyboard_input.0 = true;
+    } else {
+        console_wants_keyboard_input.0 = false;
     }
 }

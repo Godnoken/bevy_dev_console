@@ -51,7 +51,7 @@ fn main() {
         .add_plugins((
             ConsoleLogPlugin::default(),
             DefaultPlugins.build().disable::<LogPlugin>(),
-            DevConsolePlugin::default(),
+            DevConsolePlugin,
         ))
         .run();
 }

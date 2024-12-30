@@ -3,8 +3,9 @@
 //! Made with [`bevy_egui`].
 
 use bevy::prelude::*;
+
 use bevy_egui::egui::text::LayoutJob;
-use bevy_egui::egui::{Stroke, TextFormat};
+use bevy_egui::egui::{Color32, Frame, Stroke, TextFormat};
 use bevy_egui::*;
 use chrono::prelude::*;
 use web_time::SystemTime;
@@ -78,12 +79,40 @@ pub(crate) fn render_ui(
         submit_command(&mut state.command);
     }
 
-    egui::Window::new("Developer Console")
+    let low_opacity_black = Color32::from_rgba_unmultiplied(0, 0, 0, 75);
+
+    egui::Window::new("")
         .collapsible(false)
-        .default_width(900.)
+        .title_bar(false)
+        .default_width(600.0)
+        .default_height(300.0)
+        .frame(Frame {
+            fill: Color32::TRANSPARENT,
+            stroke: Stroke {
+                width: 0.0,
+                ..Default::default()
+            },
+            ..Default::default()
+        })
         .show(contexts.ctx_mut(), |ui| {
             // A General rule when creating layouts in egui is to place elements which fill remaining space last.
             // Since immediate mode ui can't predict the final sizes of widgets until they've already been drawn
+            ui.visuals_mut().widgets.noninteractive.bg_stroke = Stroke {
+                width: 0.0,
+                ..Default::default()
+            };
+            ui.visuals_mut().widgets.inactive.weak_bg_fill = low_opacity_black;
+            ui.visuals_mut().widgets.hovered.bg_stroke = Stroke {
+                width: 0.0,
+                ..Default::default()
+            };
+
+            ui.visuals_mut().widgets.hovered.fg_stroke = Stroke {
+                width: 0.0,
+                ..Default::default()
+            };
+
+            ui.visuals_mut().extreme_bg_color = low_opacity_black;
 
             // Thus we create a bottom panel first, where our text edit and submit button resides.
             egui::TopBottomPanel::bottom("bottom panel")
@@ -99,6 +128,7 @@ pub(crate) fn render_ui(
                         if ui.button("Submit").clicked() {
                             submit_command(&mut state.command);
                         }
+
                         // ui.button is a shorthand command, a similar command exists for text edits, but this is how to manually construct a widget.
                         // doing this also allows access to more options of the widget, rather than being stuck with the default the shorthand picks.
                         let text_edit = egui::TextEdit::singleline(&mut state.command)

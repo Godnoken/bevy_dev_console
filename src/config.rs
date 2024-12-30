@@ -93,7 +93,7 @@ impl ConsoleTheme {
     /// High constrast theme, might help some people.
     pub const HIGH_CONTRAST: Self = Self {
         font: FontId::monospace(14.0),
-        dark: Color::rgb(0.5, 0.5, 0.5),
+        dark: Color::rgb(1.0, 1.0, 0.5),
         text_color: Color::rgb(1.0, 1.0, 1.0),
         error: Color::rgb(1.0, 0.0, 0.0),
         warning: Color::rgb(1.0, 1.0, 0.0),
