@@ -3,8 +3,9 @@
 //! Made with [`bevy_egui`].
 
 use bevy::prelude::*;
+
 use bevy_egui::egui::text::LayoutJob;
-use bevy_egui::egui::{Stroke, TextFormat};
+use bevy_egui::egui::{Color32, Frame, Stroke, TextFormat};
 use bevy_egui::*;
 use chrono::prelude::*;
 use web_time::SystemTime;
